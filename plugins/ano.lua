@@ -4,27 +4,26 @@
 do
 
 local BASE_URL = 'http://ano.lolcathost.org/'
+local PICS_BASE = 'http://ano.lolcathost.org/pics/'
 
 local function get_image(response)
-  local images = json:decode(response).Pics
-  if #images == 0 then return nil end -- No images
-  local i = math.random(#images)
-  local image =  images[i] -- A random one
+  -- vardump(response)
+  local image = json:decode(string.gsub(response,'\n',''))
+  -- if #image == 0 then return nil end -- No images
+  -- local i = math.random(#images)
+  -- local image =  images[i] -- A random one
 
-  if image.images.downsized then
-    return image.images.downsized.url
-  end
+vardump(image)
 
-  if image.images.original then
-    return image.original.url
+  if image.pic.id then
+    return PICS_BASE .. image.pic.id
   end
 
   return nil
 end
 
 local function get_random_top()
-   --  methodRandom := strings.NewReader(`{ "method" : "random" }`)
-  local url = BASE_URL.."/json/pic.json"
+  local url = BASE_URL.."/json/pic.json?method=random"
   local response, code = http.request(url)
   if code ~= 200 then return nil end
   return get_image(response)
@@ -33,9 +32,8 @@ end
 local function search(text)
   text = URL.escape(text)
   -- searchStr := fmt.Sprintf("{ \"method\" : \"searchRelated\", \"tags\" : [%v], \"limit\" : 10 }",
-  local url = BASE_URL.."/json/tag.json"
+  local url = BASE_URL.."/json/tag.json?method=searchRelated&limit=10&tags="..text..""
   local response, code = http.request(url)
-  -- req.Header.Add("Content-Type", "application/json") ????
   if code ~= 200 then return nil end
   return get_image(response)
 end
@@ -55,15 +53,15 @@ local function run(msg, matches)
   end
 
   local receiver = get_receiver(msg)
-  print("GIF URL"..pic_url)
+  print("PIC URL"..pic_url)
 
-  send_document_from_url(receiver, pic_url)
+  send_photo_from_url(receiver, pic_url)
 end
 
 return {
   description = "Pics from ano.lolcalhost.org",
   usage = {
-    "!ano (term): Search and sends ranom pic from ano.lolcalhost.org"
+    "!ano (term): Search and sends random pic from ano.lolcalhost.org"
     },
   patterns = {
     "^!ano$",
